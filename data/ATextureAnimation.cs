@@ -6,11 +6,11 @@ using System.Collections;
 public class ATextureAnimation : MonoBehaviour
 {
     public bool runAtStart = true;
+    [Header("是否循环")]
     public bool loop = true;
 
     [Header("控件大小是否和帧大小一致")]
     public bool snap = true;
-
 
     [Header("帧间隔，毫秒")]
     public int frameTime = 33;
@@ -23,25 +23,16 @@ public class ATextureAnimation : MonoBehaviour
     [Header("每行帧数")]
     public int frameCountPerLine = 1;
 
-    [Header("整个图片的X偏移量")]
-    public int offsetX = 0;
-    [Header("整个图片的Y偏移量")]
-    public int OffsetY = 0;
-    [Header("原始帧的宽度")]
-    public int width = 100;
-    [Header("原始帧的高度")]
-    public int height = 100;
-    [Header("帧的X偏移量")]
-    public int frameOffsetX = 0;
-    [Header("帧的Y偏移量")]
-    public int frameOffsetY = 0;
+    [Header("序列帧的偏移量X")]
+    public int baseX = 0;
+    [Header("序列帧的偏移量Y")]
+    public int baseY = 0;
 
-
-
+    [Header("当前帧")]
+    public int frame = 0;
 
     UITexture mTexture;
     
-    int mFrame = 0;
     double mStartTime = 0;
     bool mRunning = true;
 
@@ -55,7 +46,7 @@ public class ATextureAnimation : MonoBehaviour
     {
         mRunning = false;
         mStartTime = 0;
-        mFrame = 0;
+        frame = 0;
         if (mTexture)
             mTexture.mainTexture = null;
     }
@@ -81,9 +72,9 @@ public class ATextureAnimation : MonoBehaviour
             return;
         }
         int curFrame = curFrameCount % frameCount;
-        if (curFrame != mFrame)
+        if (curFrame != frame && Application.isPlaying)
         {
-            mFrame = curFrame;
+            frame = curFrame;
             UpdateUV();
         }
     }
@@ -106,14 +97,16 @@ public class ATextureAnimation : MonoBehaviour
         if (!mTexture || !mTexture.mainTexture)
             return;
 
+        frame %= frameCount;
+
         int texW = mTexture.mainTexture.width;
         int texH = mTexture.mainTexture.height;
 
-        int row = mFrame / frameCountPerLine;
-        int col = mFrame % frameCountPerLine;
+        int row = frame / frameCountPerLine;
+        int col = frame % frameCountPerLine;
 
-        int x0 = -offsetX + col * width - frameOffsetX;
-        int y0 = -OffsetY + row * height - frameOffsetY;
+        int x0 = baseX + col * frameWidth;
+        int y0 = baseY + row * frameHeight;
 
         mTexture.uvRect = new Rect(
             ((float)x0) / texW, ((float)texH - y0 - frameHeight) / texH,
